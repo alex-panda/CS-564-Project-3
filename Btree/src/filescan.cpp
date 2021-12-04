@@ -8,7 +8,7 @@
 #include "filescan.h"
 #include "exceptions/end_of_file_exception.h"
 
-namespace badgerdb { 
+namespace badgerdb {
 
 FileScan::FileScan(const std::string &name, BufMgr *bufferMgr)
 {
@@ -51,15 +51,15 @@ void FileScan::scanNext(RecordId& outRid)
 		{
 			throw EndOfFileException();
 		}
-	 
+
 		// read the first page of the file
-    bufMgr->readPage(file, (*filePageIter).page_number(), curPage); 
+    bufMgr->readPage(file, (*filePageIter).page_number(), curPage);
 		curDirtyFlag = false;
 
 		// get the first record off the page
-    pageRecordIter = curPage->begin(); 
+    pageRecordIter = curPage->begin();
 
-		if(pageRecordIter != curPage->end()) 
+		if(pageRecordIter != curPage->end())
 		{
 		  // get pointer to record
 		  rec = *pageRecordIter;
@@ -91,11 +91,11 @@ void FileScan::scanNext(RecordId& outRid)
     bufMgr->readPage(file, (*filePageIter).page_number(), curPage);
 
     // get the first record off the page
-    pageRecordIter = curPage->begin(); 
+    pageRecordIter = curPage->begin();
   }
 
   // curRec points at a valid record
-  // see if the record satisfies the scan's predicate 
+  // see if the record satisfies the scan's predicate
   // get a pointer to the record
   rec = *pageRecordIter;
 
@@ -105,7 +105,7 @@ void FileScan::scanNext(RecordId& outRid)
 }
 
 // returns pointer to the current record.  page is left pinned
-// and the scan logic is required to unpin the page 
+// and the scan logic is required to unpin the page
 std::string FileScan::getRecord()
 {
   return *pageRecordIter;

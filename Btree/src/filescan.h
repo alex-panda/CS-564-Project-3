@@ -28,7 +28,7 @@ class FileScan
 
   ~FileScan();
 
-  //return RecordId of next record that satisfies the scan 
+  //return RecordId of next record that satisfies the scan
   void scanNext(RecordId& outRid);
 
   //read current record, returning pointer and length

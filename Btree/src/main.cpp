@@ -118,7 +118,7 @@ int main(int argc, char **argv)
 			while(1)
 			{
 				fscan.scanNext(scanRid);
-				//Assuming RECORD.i is our key, lets extract the key, which we know is INTEGER and whose byte offset is also know inside the record. 
+				//Assuming RECORD.i is our key, lets extract the key, which we know is INTEGER and whose byte offset is also know inside the record.
 				std::string recordStr = fscan.getRecord();
 				const char *record = recordStr.c_str();
 				int key = *((int *)(record + offsetof (RECORD, i)));
@@ -146,7 +146,7 @@ int main(int argc, char **argv)
 
 void test1()
 {
-	// Create a relation with tuples valued 0 to relationSize and perform index tests 
+	// Create a relation with tuples valued 0 to relationSize and perform index tests
 	// on attributes of all three types (int, double, string)
 	std::cout << "---------------------" << std::endl;
 	std::cout << "createRelationForward" << std::endl;
@@ -157,7 +157,7 @@ void test1()
 
 void test2()
 {
-	// Create a relation with tuples valued 0 to relationSize in reverse order and perform index tests 
+	// Create a relation with tuples valued 0 to relationSize in reverse order and perform index tests
 	// on attributes of all three types (int, double, string)
 	std::cout << "----------------------" << std::endl;
 	std::cout << "createRelationBackward" << std::endl;
@@ -168,7 +168,7 @@ void test2()
 
 void test3()
 {
-	// Create a relation with tuples valued 0 to relationSize in random order and perform index tests 
+	// Create a relation with tuples valued 0 to relationSize in random order and perform index tests
 	// on attributes of all three types (int, double, string)
 	std::cout << "--------------------" << std::endl;
 	std::cout << "createRelationRandom" << std::endl;
@@ -335,7 +335,7 @@ void createRelationRandom()
 		intvec[pos] = temp;
 		i++;
   }
-  
+
 	file1->writePage(new_page_number, new_page);
 }
 
@@ -386,7 +386,7 @@ int intScan(BTreeIndex * index, int lowVal, Operator lowOp, int highVal, Operato
   std::cout << std::endl;
 
   int numResults = 0;
-	
+
 	try
 	{
   	index->startScan(&lowVal, lowOp, &highVal, highOp);
@@ -454,14 +454,14 @@ void errorTests()
 		}
 
 		file1 = new PageFile(relationName, true);
-		
+
 		// initialize all of record1.s to keep purify happy
 		memset(record1.s, ' ', sizeof(record1.s));
 		PageId new_page_number;
 		Page new_page = file1->allocatePage(new_page_number);
 
 		// Insert a bunch of tuples into the relation.
-		for(int i = 0; i <10; i++ ) 
+		for(int i = 0; i <10; i++ )
 		{
 		  sprintf(record1.s, "%05d string record", i);
 		  record1.i = i;
@@ -486,7 +486,7 @@ void errorTests()
 		file1->writePage(new_page_number, new_page);
 
 		BTreeIndex index(relationName, intIndexName, bufMgr, offsetof(tuple,i), INTEGER);
-		
+
 		int int2 = 2;
 		int int5 = 5;
 
@@ -501,7 +501,7 @@ void errorTests()
 		{
 			std::cout << "ScanNotInitialized Test 1 Passed." << std::endl;
 		}
-		
+
 		std::cout << "Call scanNext before startScan" << std::endl;
 		try
 		{
@@ -513,7 +513,7 @@ void errorTests()
 		{
 			std::cout << "ScanNotInitialized Test 2 Passed." << std::endl;
 		}
-		
+
 		std::cout << "Scan with bad lowOp" << std::endl;
 		try
 		{
@@ -524,7 +524,7 @@ void errorTests()
 		{
 			std::cout << "BadOpcodesException Test 1 Passed." << std::endl;
 		}
-		
+
 		std::cout << "Scan with bad highOp" << std::endl;
 		try
 		{

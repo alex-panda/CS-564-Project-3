@@ -48,7 +48,7 @@ BTreeIndex::~BTreeIndex()
 // BTreeIndex::insertEntry
 // -----------------------------------------------------------------------------
 
-void BTreeIndex::insertEntry(const void *key, const RecordId rid) 
+void BTreeIndex::insertEntry(const void *key, const RecordId rid)
 {
 
 }
@@ -69,7 +69,7 @@ void BTreeIndex::startScan(const void* lowValParm,
 // BTreeIndex::scanNext
 // -----------------------------------------------------------------------------
 
-void BTreeIndex::scanNext(RecordId& outRid) 
+void BTreeIndex::scanNext(RecordId& outRid)
 {
 
 }
@@ -78,7 +78,7 @@ void BTreeIndex::scanNext(RecordId& outRid)
 // BTreeIndex::endScan
 // -----------------------------------------------------------------------------
 //
-void BTreeIndex::endScan() 
+void BTreeIndex::endScan()
 {
 
 }
