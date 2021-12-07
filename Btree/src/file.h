@@ -66,7 +66,7 @@ struct FileHeader {
  * underlying file, they will share the stream in memory.
  * If a file that has already been opened (possibly by another query), then the File class
  * detects this (by looking in the open_streams_ map) and just returns a file object with
- * the already created stream for the file without actually opening the UNIX file again. 
+ * the already created stream for the file without actually opening the UNIX file again.
  *
  * @warning This class is not threadsafe.
  */
@@ -273,7 +273,7 @@ class PageFile : public File {
 
   /**
    * Copy constructor.
-   * 
+   *
    * @param other File object to copy.
    * @return      A copy of the File object.
    */
@@ -421,7 +421,7 @@ class BlobFile : public File {
 
   /**
    * Copy constructor.
-   * 
+   *
    * @param other File object to copy.
    * @return      A copy of the File object.
    */
