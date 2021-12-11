@@ -298,20 +298,19 @@ private:
 
   PageId initialRootPageNum;
 
-  const void insert(Page* currPage, PageId currPageId, bool isLeaf, RIDKeyPair<int> newEntry, PageKeyPair<int> *&newInternal);
+  void insert(Page* currPage, PageId currPageId, bool isLeaf, RIDKeyPair<int> newEntry, PageKeyPair<int> *&newInternal);
 
-  const void findNextInternal(NonLeafNodeInt *internal, PageId &pageId, int key);
+  void findNextInternal(NonLeafNodeInt *internal, PageId &pageId, int key);
 
-  const void updateRoot(PageId firstPageInRoot, PageKeyPair<int> *newchildEntry);
+  void updateRoot(PageId firstPageInRoot, PageKeyPair<int> *newchildEntry);
 
-  const void splitLeaf(LeafNodeInt *leaf, PageId leafPageId, PageKeyPair<int> *&newInternal, RIDKeyPair<int> newEntry);
+  void splitLeaf(LeafNodeInt *leaf, PageId leafPageId, PageKeyPair<int> *&newInternal, RIDKeyPair<int> newEntry);
 
-  const void insertLeaf(LeafNodeInt *leaf, RIDKeyPair<int> newEntry);
+  void insertLeaf(LeafNodeInt *leaf, RIDKeyPair<int> newEntry);
 
-  const void splitInternal(NonLeafNodeInt *oldNode, PageId oldPageId, PageKeyPair<int> *&newInternal);
+  void splitInternal(NonLeafNodeInt *oldNode, PageId oldPageId, PageKeyPair<int> *&newInternal);
 
-  const void insertInternal(NonLeafNodeInt *internal, PageKeyPair<int> *newEntry);
-
+  void insertInternal(NonLeafNodeInt *internal, PageKeyPair<int> *newEntry);
 
 
 public:
@@ -350,7 +349,7 @@ public:
    * @param key     Key to insert, pointer to integer/double/char string
    * @param rid     Record ID of a record whose entry is getting inserted into the index.
   **/
-  void insertEntry(const void* key, const RecordId rid);
+  void insertEntry(void* key, const RecordId rid);
 
 
   /**
@@ -368,7 +367,7 @@ public:
    * @throws  BadScanrangeException If lowVal > highval
    * @throws  NoSuchKeyFoundException If there is no key in the B+ tree that satisfies the scan criteria.
   **/
-  void startScan(const void* lowVal, const Operator lowOp, const void* highVal, const Operator highOp);
+  void startScan(void* lowVal, const Operator lowOp, void* highVal, const Operator highOp);
 
 
   /**
