@@ -86,13 +86,14 @@ BTreeIndex::BTreeIndex(const std::string &relationName,
     IndexMetaInfo *meta = (IndexMetaInfo *)headerPage;
     this->rootPageNum = meta->rootPageNo;
 
-    // Unpin page that was pinned when readPage was called
-    bufMgr->unPinPage(this->file, this->headerPageNum, false);
-
     // Make sure that this is valid index info
     if (relationName != meta->relationName || attrType != meta->attrType ||
         this->attrByteOffset != meta->attrByteOffset)
       throw BadIndexInfoException(outIndexName);
+
+    // Unpin page that was pinned when readPage was called
+    bufMgr->unPinPage(this->file, this->headerPageNum, false);
+
   } catch (FileNotFoundException &e) {
     // if file does not exist, create it and insert entries for every tuple
     // in the base relation using FileScan class
@@ -112,6 +113,8 @@ BTreeIndex::BTreeIndex(const std::string &relationName,
     meta->rootPageNo = this->rootPageNum;
     strncpy((char *)(&(meta->relationName)), relationName.c_str(), 20);
     meta->relationName[19] = 0;
+
+    this->initialRootPageNum = this->rootPageNum;
 
     // init root
     LeafNodeInt *root = (LeafNodeInt *)rootPage;
@@ -193,7 +196,7 @@ void BTreeIndex::insertEntry(void *key, const RecordId rid) {
   Page *rootPage;
   this->bufMgr->readPage(this->file, this->rootPageNum, rootPage);
 
-  insert(rootPage, this->rootPageNum, initialRootPageNum == this->rootPageNum,
+  insert(rootPage, this->rootPageNum, this->initialRootPageNum == this->rootPageNum,
          newEntry, newInternal);
 }
 
@@ -439,6 +442,7 @@ void BTreeIndex::insertInternal(NonLeafNodeInt *internal,
  **/
 void BTreeIndex::startScan(void *lowValParm, const Operator lowOpParm,
                            void *highValParm, const Operator highOpParm) {
+
   // Check that the parameters are valid
   if (!((lowOpParm == GT || lowOpParm == GTE) &&
         (highOpParm == LT || highOpParm == LTE))) {
@@ -468,12 +472,12 @@ void BTreeIndex::startScan(void *lowValParm, const Operator lowOpParm,
   this->bufMgr->readPage(this->file, this->currentPageNum,
                          this->currentPageData);
 
-  NonLeafNodeInt *currNode = (NonLeafNodeInt *)this->currentPageData;
-  bool leafFound = false;
-
   // if currNode (the root node) is not a leaf node, then we need to find the
   //      leaf node
-  if (currNode->level != 0) {
+  if (this->initialRootPageNum != this->rootPageNum) {
+    NonLeafNodeInt *currNode = (NonLeafNodeInt *)this->currentPageData;
+    bool leafFound = false;
+
     // search for leaves
     while (!leafFound) {
       currNode = (NonLeafNodeInt *)this->currentPageData;
@@ -610,9 +614,14 @@ void BTreeIndex::scanNext(RecordId &outRid) {
  * @throws ScanNotInitializedException If no scan has been initialized.
  **/
 void BTreeIndex::endScan() {
-  if (!scanExecuting) throw ScanNotInitializedException();
-  scanExecuting = false;
-  bufMgr->unPinPage(file, currentPageNum, false);
+  if (!this->scanExecuting) throw ScanNotInitializedException();
+  bufMgr->unPinPage(this->file, this->currentPageNum, false);
+
+  // deinit necessary fields
+  this->scanExecuting = false;
+  this->currentPageData = nullptr;
+  this->currentPageNum = static_cast<PageId>(-1);
+  this->nextEntry = -1;
 }
 
 }  // namespace badgerdb
