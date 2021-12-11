@@ -55,6 +55,7 @@ clean:
 	rm -rf src/exceptions/*.o;\
 	rm -rf src/*.o;\
 	rm -rf src/*.a;\
+	rm -f src/relA*;\
 	rm -f src/badgerdb_main
 
 doc:
