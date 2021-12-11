@@ -57,7 +57,7 @@ BTreeIndex::BTreeIndex(const std::string &relationName,
                        const int attrByteOffset, const Datatype attrType) {
   // Create the file name
   std::ostringstream idxStr;
-  idxStr << relationName << " . " << attrByteOffset;
+  idxStr << relationName << "." << attrByteOffset;
   outIndexName = idxStr.str();  // indexName is the name of the index file
 
   // set fields
@@ -159,12 +159,7 @@ BTreeIndex::~BTreeIndex() {
   }
 
   // flushes file, throws error
-  try {
-    this->bufMgr->flushFile(this->file);
-  } catch (PagePinnedException &e) {
-    throw e;
-    // pages where pinned if this is caught so they need to be unpinned
-  }
+  this->bufMgr->flushFile(this->file);
 
   // deletes file if necessary
   if (this->file != NULL) {
@@ -482,7 +477,6 @@ void BTreeIndex::startScan(void *lowValParm, const Operator lowOpParm,
     // search for leaves
     while (!leafFound) {
       currNode = (NonLeafNodeInt *)this->currentPageData;
-      bool pageFound = false;
 
       // if correct leaf has been found, end while loop
       if (currNode->level == 1) {
@@ -492,7 +486,7 @@ void BTreeIndex::startScan(void *lowValParm, const Operator lowOpParm,
       for (int i = 0; i < this->nodeOccupancy; i++) {
         if (currNode->keyArray[i] == 0 &&
             this->lowValInt > currNode->keyArray[i]) {
-          pageFound = true;
+
           this->bufMgr->unPinPage(this->file, this->currentPageNum, false);
           this->currentPageNum = currNode->pageNoArray[i + 1];
           this->bufMgr->readPage(this->file, this->currentPageNum,
@@ -501,7 +495,6 @@ void BTreeIndex::startScan(void *lowValParm, const Operator lowOpParm,
         }
 
         if (this->lowValInt <= currNode->keyArray[i]) {
-          pageFound = true;
           this->bufMgr->unPinPage(this->file, this->currentPageNum, false);
           this->currentPageNum = currNode->pageNoArray[i];
           this->bufMgr->readPage(this->file, this->currentPageNum,

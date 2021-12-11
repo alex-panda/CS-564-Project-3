@@ -6,6 +6,8 @@ CFLAGS = -std=c++0x -Wall -g
 OBJ = src/obj
 LIB = src/lib
 
+OUT_FILE = badgerdb_main
+
 RHEL_VER := $(shell uname -r | grep -o -E '(el5|el6)')
 ifeq ($(RHEL_VER), el5)
   PATH     := /s/gcc-4.6.1/bin:$(PATH)
@@ -18,7 +20,11 @@ export PATH
 all: $(LIB)/bufmgr.a $(OBJ)/filescan.o $(OBJ)/main.o $(OBJ)/btree.o
 	cd src;\
 	rm -rf ../relA*;\
-	$(CC) $(CFLAGS) -I. obj/filescan.o obj/main.o obj/btree.o lib/bufmgr.a lib/exceptions.a -o badgerdb_main
+	$(CC) $(CFLAGS) -I. obj/filescan.o obj/main.o obj/btree.o lib/bufmgr.a lib/exceptions.a -o ${OUT_FILE}
+
+run: all
+	cd src;\
+	./${OUT_FILE}
 
 $(LIB)/bufmgr.a: $(LIB)/exceptions.a src/buffer.* src/file.* src/page.* src/bufHashTbl.*
 	cd $(OBJ)/;\
@@ -47,6 +53,8 @@ clean:
 	rm -rf $(OBJ)/*.o;\
 	rm -rf $(LIB)/*;\
 	rm -rf src/exceptions/*.o;\
+	rm -rf src/*.o;\
+	rm -rf src/*.a;\
 	rm -f src/badgerdb_main
 
 doc:
