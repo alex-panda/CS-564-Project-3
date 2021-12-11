@@ -52,3 +52,5 @@ clean:
 doc:
 	doxygen Doxyfile
 
+format:
+	find . \( -iname '*.h' -o -iname '*.cpp' \) -exec clang-format -style=Google -i {} \;
