@@ -180,6 +180,8 @@ void createRelationForward() {
   } catch (const FileNotFoundException &e) {
   }
 
+  std::cout << "HERE!!!!!!!!!" << std::endl;
+
   file1 = new PageFile(relationName, true);
 
   // initialize all of record1.s to keep purify happy
