@@ -487,12 +487,11 @@ namespace badgerdb
         this->lowValInt = *((int *)lowValParm);
         this->highValInt = *((int *)highValParm);
 
-        if (this->attrByteOffset ==)
-            // Check that the ranges are valid
-            if (this->lowValInt > this->highValInt)
-            {
-                throw BadScanrangeException();
-            }
+        // Check that the ranges are valid
+        if (this->lowValInt > this->highValInt)
+        {
+            throw BadScanrangeException();
+        }
 
         this->lowOp = lowOpParm;
         this->highOp = highOpParm;
@@ -535,12 +534,12 @@ namespace badgerdb
                     {
                         pageFound = true;
                         this->bufMgr->unPinPage(this->file, this->currentPageNum, false);
-                        this->currentPageNum = this->currNode->pageNoArray[i + 1];
+                        this->currentPageNum = currNode->pageNoArray[i + 1];
                         this->bufMgr->readPage(this->file, this->currentPageNum, this->currentPageData);
                         break;
                     }
 
-                    if (this->lowValInt <= this->currNode->keyArray[i])
+                    if (this->lowValInt <= currNode->keyArray[i])
                     {
                         pageFound = true;
                         this->bufMgr->unPinPage(this->file, this->currentPageNum, false);
@@ -564,7 +563,7 @@ namespace badgerdb
                 {
                     if (lowOpParm == GT)
                     {
-                        if (lowValInt >= leafPage->keyArray[keyIndex])
+                        if (lowValInt >= leafPage->keyArray[keyIdx])
                         {
                             continue;
                         }
