@@ -1,5 +1,5 @@
 # Prerequisites
-*.d
+**.d
 
 # Compiled Object files
 **.slo
@@ -8,17 +8,17 @@
 **.obj
 
 # Precompiled Headers
-*.gch
-*.pch
+**.gch
+**.pch
 
 # Compiled Dynamic libraries
-*.so
-*.dylib
-*.dll
+**.so
+**.dylib
+**.dll
 
 # Fortran module files
-*.mod
-*.smod
+**.mod
+**.smod
 
 # Compiled Static libraries
 **.lai
@@ -30,3 +30,7 @@
 **.exe
 **.out
 **.app
+**badgerdb_main
+
+# Database Files
+**rel*
