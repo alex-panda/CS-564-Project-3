@@ -227,9 +227,7 @@ void BTreeIndex::insert(Page *currPage, PageId currPageId, bool isLeaf,
       insertLeaf(leaf, newEntry);  // node is not full, so insert leaf
       this->bufMgr->unPinPage(this->file, currPageId, true);
     } else {
-      splitLeaf(leaf, currPageId, newInternal,
-                newEntry);  // split leaf into two nodes, push mid val up to
-                            // parent node
+      splitLeaf(leaf, currPageId, newInternal, newEntry);
     }
   } else {
     NonLeafNodeInt *currNode = reinterpret_cast<NonLeafNodeInt *>(currPage);
@@ -240,10 +238,9 @@ void BTreeIndex::insert(Page *currPage, PageId currPageId, bool isLeaf,
     // find next node one level down
     findNextInternal(currNode, nextNodeId, newEntry.key);
 
-    // determine node type of next page
+    // Get next page
     this->bufMgr->readPage(this->file, nextNodeId, nextPage);
 
-    // traverse
     insert(nextPage, nextNodeId, currNode->level == 1, newEntry, newInternal);
 
     if (!newInternal) {
@@ -261,11 +258,9 @@ void BTreeIndex::insert(Page *currPage, PageId currPageId, bool isLeaf,
   }
 }
 
-void BTreeIndex::findNextInternal(NonLeafNodeInt *internal, PageId &pageId,
-                                  int key) {
-  int i;
+void BTreeIndex::findNextInternal(NonLeafNodeInt *internal, PageId &pageId, int key) {
 
-  for (i = this->nodeOccupancy; i > 0; i--) {
+  for (int i = this->nodeOccupancy; i > 0; i--) {
     if (internal->pageNoArray[i] != 0 && internal->keyArray[i - 1] < key) {
       pageId = internal->pageNoArray[i];
       return;
@@ -277,14 +272,22 @@ void BTreeIndex::findNextInternal(NonLeafNodeInt *internal, PageId &pageId,
 
 void BTreeIndex::updateRoot(PageId firstPageInRoot,
                             PageKeyPair<int> *newInternal) {
+
   // create a new root
   PageId newRootPageNum;
   Page *newRoot;
   this->bufMgr->allocPage(this->file, newRootPageNum, newRoot);
   NonLeafNodeInt *newRootPage = reinterpret_cast<NonLeafNodeInt *>(newRoot);
 
-  // update metadata
-  newRootPage->level = initialRootPageNum == this->rootPageNum ? 1 : 0;
+  int level;
+  if (initialRootPageNum == this->rootPageNum) {
+      level = 1;
+  } else {
+      level = 0;
+  }
+
+  // update metadata of the root page
+  newRootPage->level = level;
   newRootPage->pageNoArray[0] = firstPageInRoot;
   newRootPage->pageNoArray[1] = newInternal->pageNo;
   newRootPage->keyArray[0] = newInternal->key;
@@ -294,7 +297,8 @@ void BTreeIndex::updateRoot(PageId firstPageInRoot,
   IndexMetaInfo *metaPage = (IndexMetaInfo *)meta;
   metaPage->rootPageNo = newRootPageNum;
   this->rootPageNum = newRootPageNum;
-  // unpin unused page
+
+  // unpin pages that are no longer needed
   this->bufMgr->unPinPage(this->file, this->headerPageNum, true);
   this->bufMgr->unPinPage(this->file, newRootPageNum, true);
 }
@@ -302,14 +306,19 @@ void BTreeIndex::updateRoot(PageId firstPageInRoot,
 void BTreeIndex::splitLeaf(LeafNodeInt *leaf, PageId leafPageId,
                            PageKeyPair<int> *&newInternal,
                            RIDKeyPair<int> newEntry) {
-  // allocate a new leaf page
+
+  // allocate a new leaf page to use
   PageId newPageId;
   Page *newPage;
   this->bufMgr->allocPage(this->file, newPageId, newPage);
   LeafNodeInt *newLeaf = reinterpret_cast<LeafNodeInt *>(newPage);
 
-  int mid = this->leafOccupancy % 2 == 0 ? (this->leafOccupancy / 2)
-                                         : (this->leafOccupancy / 2 + 1);
+  int mid;
+  if (this->leafOccupancy % 2) {
+      mid = this->leafOccupancy / 2;
+  } else {
+      mid = this->leafOccupancy / 2 + 1;
+  }
 
   // copy half the page to newLeaf
   for (int i = mid; i < this->leafOccupancy; i++) {
@@ -346,14 +355,16 @@ void BTreeIndex::splitLeaf(LeafNodeInt *leaf, PageId leafPageId,
 
 void BTreeIndex::insertLeaf(LeafNodeInt *leaf, RIDKeyPair<int> newEntry) {
   if (leaf->ridArray[0].page_number != 0) {  // leaf is not empty
-    int i;
-
-    for (i = this->leafOccupancy - 1; i >= 0; i--) {
+    for (int i = this->leafOccupancy - 1; i >= 0; i--) {
       if (leaf->ridArray[i].page_number != 0) {
-        if (leaf->keyArray[i] > newEntry.key) {  // shift existing entry
+        if (leaf->keyArray[i] > newEntry.key) {
+
+          // move the existing entry
           leaf->keyArray[i + 1] = leaf->keyArray[i];
           leaf->ridArray[i + 1] = leaf->ridArray[i];
-        } else {  // insert new entry
+        } else {
+
+          // insert the new entry
           leaf->keyArray[i + 1] = newEntry.key;
           leaf->ridArray[i + 1] = newEntry.rid;
           return;
@@ -366,25 +377,34 @@ void BTreeIndex::insertLeaf(LeafNodeInt *leaf, RIDKeyPair<int> newEntry) {
   leaf->ridArray[0] = newEntry.rid;
 }
 
-void BTreeIndex::splitInternal(NonLeafNodeInt *oldNode, PageId oldPageId,
-                               PageKeyPair<int> *&newInternal) {
+void BTreeIndex::splitInternal(NonLeafNodeInt *oldNode, PageId oldPageId, PageKeyPair<int> *&newInternal) {
+
   // allocate a new internal node
   PageId newPageId;
   Page *newPage;
+
   this->bufMgr->allocPage(this->file, newPageId, newPage);
   NonLeafNodeInt *newNode = reinterpret_cast<NonLeafNodeInt *>(newPage);
 
   int mid = this->nodeOccupancy / 2;
   int pushupIndex = mid;
   PageKeyPair<int> pushupEntry;
-  // even number of keys
+
   if (this->nodeOccupancy % 2 == 0) {
-    pushupIndex = newInternal->key < oldNode->keyArray[mid] ? mid - 1 : mid;
+    // There are an even number of keys
+
+    if (newInternal->key < oldNode->keyArray[mid]) {
+        pushupIndex = mid - 1;
+    } else {
+        pushupIndex = mid;
+    }
   }
+
   pushupEntry.set(newPageId, oldNode->keyArray[pushupIndex]);
 
   mid = pushupIndex + 1;
-  // move half the entries to the new node
+
+  // move half of the entries to the new node and keep the other half here
   for (int i = mid; i < this->nodeOccupancy; i++) {
     newNode->keyArray[i - mid] = oldNode->keyArray[i];
     newNode->pageNoArray[i - mid] = oldNode->pageNoArray[i + 1];
@@ -393,13 +413,20 @@ void BTreeIndex::splitInternal(NonLeafNodeInt *oldNode, PageId oldPageId,
   }
 
   newNode->level = oldNode->level;
-  // remove the entry that is pushed up from current node
+
   oldNode->keyArray[pushupIndex] = 0;
   oldNode->pageNoArray[pushupIndex] = (PageId)0;
-  // insert the new child entry
-  insertInternal(newInternal->key < newNode->keyArray[0] ? oldNode : newNode,
-                 newInternal);
-  // newInternal = new PageKeyPair<int>();
+
+  // insert the child entry into the tree
+  NonLeafNodeInt *child;
+  if (newInternal->key < newNode->keyArray[0]) {
+    child = oldNode;
+  } else {
+    child = newNode;
+  }
+
+  insertInternal(child, newInternal);
+
   newInternal = &pushupEntry;
   this->bufMgr->unPinPage(this->file, oldPageId, true);
   this->bufMgr->unPinPage(this->file, newPageId, true);
@@ -410,18 +437,21 @@ void BTreeIndex::splitInternal(NonLeafNodeInt *oldNode, PageId oldPageId,
   }
 }
 
-void BTreeIndex::insertInternal(NonLeafNodeInt *internal,
-                                PageKeyPair<int> *newEntry) {
-  int i;
-
-  for (i = this->nodeOccupancy; i >= 0; i--) {
-    if (internal->pageNoArray[i] == 0) {  // no page here
+void BTreeIndex::insertInternal(NonLeafNodeInt *internal, PageKeyPair<int> *newEntry) {
+  for (int i = this->nodeOccupancy; i >= 0; i--) {
+    if (internal->pageNoArray[i] == 0) {
+        // There is no page here
       continue;
+
     } else {
-      if (internal->keyArray[i - 1] > newEntry->key) {  // shift existing entry
+
+      if (internal->keyArray[i - 1] > newEntry->key) {
+        // move the pre-existing entry
         internal->keyArray[i] = internal->keyArray[i - 1];
         internal->pageNoArray[i + 1] = internal->pageNoArray[i];
-      } else {  // insert new entry
+
+      } else {
+        // insert a new entry into the tree
         internal->keyArray[i] = newEntry->key;
         internal->pageNoArray[i + 1] = newEntry->pageNo;
         return;

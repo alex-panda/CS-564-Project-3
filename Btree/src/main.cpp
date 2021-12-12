@@ -416,12 +416,10 @@ void createRelationForwardWithRange(int start, int end)
 {
   std::vector<RecordId> ridVec;
   // destroy any old copies of relation file
-  try
-  {
+  try {
     File::remove(relationName);
   }
-  catch (FileNotFoundException e)
-  {
+  catch (FileNotFoundException &e) {
   }
 
   file1 = new PageFile(relationName, true);
@@ -446,7 +444,7 @@ void createRelationForwardWithRange(int start, int end)
         new_page.insertRecord(new_data);
         break;
       }
-      catch (InsufficientSpaceException e)
+      catch (InsufficientSpaceException &e)
       {
         file1->writePage(new_page_number, new_page);
         new_page = file1->allocatePage(new_page_number);
@@ -497,7 +495,7 @@ void indexTestsInput(int test_input)
     {
       File::remove(intIndexName);
     }
-    catch (FileNotFoundException e)
+    catch (FileNotFoundException &e)
     {
     }
   }
