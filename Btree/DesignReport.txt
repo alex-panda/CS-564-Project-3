@@ -1,0 +1,8 @@
+4. Design report: 15%. Your design report must describe the following design choices
+that you make:
+    • Any implementation choices that you make. How often do you keep pages
+        pinned? How efficient is your implementation? We are not going to run a
+        speed test, but will look at the code to check if you are performing operations
+        that are inefficient, such as unnecessarily traversing the tree up and down mul-
+        tiple times during range searches
+    • Please use your report to justify any additional design choices that you make.
