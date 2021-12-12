@@ -9,9 +9,21 @@
 
 
 
-For this project, we implemented a B+ tree index on a search key that is of type integer. A B+ tree index is widely used in many database management systems because it supports very efficient equality and range search. For this assignment, the index stores data entries in the form of key and record id pairs.
+For this project, we implemented a B+ tree index on a search key that is of type integer. 
+A B+ tree index is widely used in many database management systems because it supports very 
+efficient equality and range search. For this assignment, the index stores data entries in 
+the form of key and record id pairs.
 
-With regards to our implementation, we build the index by repeatedly calling the insertEntry method for each record in the relation. If the tree only contains the root node, we insert the data entry into the root. If the tree contains more than just the root node, we perform binary search to find the appropriate leaf node and insert the record accordingly. If the leaf node is full, we split it into two nodes, redistribute the keys evenly, and copy the middle key up to the parent node. If the parent node isn’t full, then we just copy the key into the node. If the parent node is full, we redistribute the keys evenly, and push the middle key up the tree. This can propagate recursively to other nodes. The maximum number of pages that are pinned is equal to the height of the tree. All pages eventually get unpinned by the time the insertEntry method returns. 
+With regards to our implementation, we build the index by repeatedly calling the 
+insertEntry method for each record in the relation. If the tree only contains
+the root node, we insert the data entry into the root. If the tree contains more than 
+just the root node, we perform binary search to find the appropriate leaf node and insert 
+the record accordingly. If the leaf node is full, we split it into two nodes, redistribute 
+the keys evenly, and copy the middle key up to the parent node. If the parent node isn’t 
+full, then we just copy the key into the node. If the parent node is full, we redistribute 
+the keys evenly, and push the middle key up the tree. This can propagate recursively to 
+other nodes. The maximum number of pages that are pinned is equal to the height of the tree. 
+All pages eventually get unpinned by the time the insertEntry method returns. 
 
 Created Tests:
  - test4
