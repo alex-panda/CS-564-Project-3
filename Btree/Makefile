@@ -18,6 +18,8 @@ endif
 export PATH
 
 make_folder := $(shell mkdir -p src/lib)
+make_folder := $(shell mkdir -p src/obj)
+make_folder := $(shell mkdir -p src/obj/exceptions)
 
 
 all: $(LIB)/bufmgr.a $(OBJ)/filescan.o $(OBJ)/main.o $(OBJ)/btree.o
