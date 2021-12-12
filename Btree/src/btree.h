@@ -1,4 +1,21 @@
 /**
+ * Student 1
+ * Name: Alexander Peseckis
+ * Student ID: 908-154-1840
+ * Email: peseckis@wisc.edu
+ *
+ * Student 2
+ * Name: Win San
+ * Student ID: 907-936-4031
+ * Email: wsan3@wisc.edu
+ *
+ * Student 3
+ * Name: Steven Hizmi
+ * Student ID: 907-965-9059
+ * Email: shizmi@wisc.edu
+ */
+
+/**
  * @author See Contributors.txt for code contributors and overview of BadgerDB.
  *
  * @section LICENSE
@@ -306,12 +323,6 @@ class BTreeIndex {
                      PageKeyPair<int> *&newInternal);
 
   void insertInternal(NonLeafNodeInt *internal, PageKeyPair<int> *newEntry);
-
-
-
-  // new functions
-  bool validKey(int lowVal, const Operator lowOp, int highVal, const Operator highOp, int key);
-
 
  public:
   /**
