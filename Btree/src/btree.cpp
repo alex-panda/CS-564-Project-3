@@ -87,8 +87,7 @@ BTreeIndex::BTreeIndex(const std::string &relationName,
   // Check to see if the corresponding index file exists
   try {
     // if file exists, open the file
-    this->file =
-      new BlobFile(outIndexName, false);  // Try to open existing file
+    this->file = new BlobFile(outIndexName, false);  // Try to open existing file
 
     // Read file info
     this->headerPageNum = this->file->getFirstPageNo();
@@ -152,7 +151,6 @@ BTreeIndex::BTreeIndex(const std::string &relationName,
       }
     } catch (EndOfFileException &e) {
       // Save the Index to the file
-
       this->bufMgr->flushFile(this->file);
     }
   }
@@ -212,8 +210,7 @@ void BTreeIndex::insertEntry(void *key, const RecordId rid) {
   Page *rootPage;
   this->bufMgr->readPage(this->file, this->rootPageNum, rootPage);
 
-  insert(rootPage, this->rootPageNum,
-         this->initialRootPageNum == this->rootPageNum, newEntry, newInternal);
+  insert(rootPage, this->rootPageNum, this->initialRootPageNum == this->rootPageNum, newEntry, newInternal);
 }
 
 void BTreeIndex::insert(Page *currPage, PageId currPageId, bool isLeaf,
@@ -244,8 +241,7 @@ void BTreeIndex::insert(Page *currPage, PageId currPageId, bool isLeaf,
     insert(nextPage, nextNodeId, currNode->level == 1, newEntry, newInternal);
 
     if (!newInternal) {
-      this->bufMgr->unPinPage(this->file, currPageId,
-                              false);  // parent node did not need to be split
+      this->bufMgr->unPinPage(this->file, currPageId, false);  // parent node did not need to be split
     } else {
       if (currNode->pageNoArray[this->nodeOccupancy] == 0) {
         insertInternal(currNode, newInternal);  // internal not full so insert
@@ -433,8 +429,7 @@ void BTreeIndex::splitInternal(NonLeafNodeInt *oldNode, PageId oldPageId,
   }
 }
 
-void BTreeIndex::insertInternal(NonLeafNodeInt *internal,
-                                PageKeyPair<int> *newEntry) {
+void BTreeIndex::insertInternal(NonLeafNodeInt *internal, PageKeyPair<int> *newEntry) {
   for (int i = this->nodeOccupancy; i >= 0; i--) {
     if (internal->pageNoArray[i] == 0) {
       // There is no page here
@@ -485,8 +480,7 @@ void BTreeIndex::insertInternal(NonLeafNodeInt *internal,
 void BTreeIndex::startScan(void *lowValParm, const Operator lowOpParm,
                            void *highValParm, const Operator highOpParm) {
   // Check that the parameters are valid
-  if (!((lowOpParm == GT || lowOpParm == GTE) &&
-        (highOpParm == LT || highOpParm == LTE))) {
+  if (!((lowOpParm == GT || lowOpParm == GTE) && (highOpParm == LT || highOpParm == LTE))) {
     throw BadOpcodesException();
   }
 
@@ -512,8 +506,7 @@ void BTreeIndex::startScan(void *lowValParm, const Operator lowOpParm,
   this->currentPageNum = this->rootPageNum;
 
   // Read root page into the buffer pool
-  this->bufMgr->readPage(this->file, this->currentPageNum,
-                         this->currentPageData);
+  this->bufMgr->readPage(this->file, this->currentPageNum, this->currentPageData);
 
   // if currNode (the root node) is not a leaf node, then we need to find the
   //      leaf node
@@ -532,20 +525,17 @@ void BTreeIndex::startScan(void *lowValParm, const Operator lowOpParm,
       }
 
       for (int i = 0; i < this->nodeOccupancy; i++) {
-        if (currNode->keyArray[i] == 0 &&
-            this->lowValInt > currNode->keyArray[i]) {
+        if (currNode->keyArray[i] == 0 && this->lowValInt > currNode->keyArray[i]) {
           this->bufMgr->unPinPage(this->file, this->currentPageNum, false);
           this->currentPageNum = currNode->pageNoArray[i + 1];
-          this->bufMgr->readPage(this->file, this->currentPageNum,
-                                 this->currentPageData);
+          this->bufMgr->readPage(this->file, this->currentPageNum, this->currentPageData);
           break;
         }
 
         if (this->lowValInt <= currNode->keyArray[i]) {
           this->bufMgr->unPinPage(this->file, this->currentPageNum, false);
           this->currentPageNum = currNode->pageNoArray[i];
-          this->bufMgr->readPage(this->file, this->currentPageNum,
-                                 this->currentPageData);
+          this->bufMgr->readPage(this->file, this->currentPageNum, this->currentPageData);
           break;
         }
       }
@@ -594,8 +584,7 @@ void BTreeIndex::startScan(void *lowValParm, const Operator lowOpParm,
       if (looking) {
         this->bufMgr->unPinPage(this->file, this->currentPageNum, false);
         this->currentPageNum = leafPage->rightSibPageNo;
-        this->bufMgr->readPage(this->file, this->currentPageNum,
-                               this->currentPageData);
+        this->bufMgr->readPage(this->file, this->currentPageNum, this->currentPageData);
       }
     }
     this->nextEntry = keyIdx;
@@ -603,8 +592,7 @@ void BTreeIndex::startScan(void *lowValParm, const Operator lowOpParm,
   } else {
     // make the current page the root if it is a leaf
     this->currentPageNum = rootPageNum;
-    this->bufMgr->readPage(this->file, this->currentPageNum,
-                           this->currentPageData);
+    this->bufMgr->readPage(this->file, this->currentPageNum, this->currentPageData);
     this->nextEntry = 0;  // reset next entry because we have reached a new page
   }
 }
