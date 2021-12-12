@@ -307,6 +307,12 @@ class BTreeIndex {
 
   void insertInternal(NonLeafNodeInt *internal, PageKeyPair<int> *newEntry);
 
+
+
+  // new functions
+  bool validKey(int lowVal, const Operator lowOp, int highVal, const Operator highOp, int key);
+
+
  public:
   /**
    * BTreeIndex Constructor.

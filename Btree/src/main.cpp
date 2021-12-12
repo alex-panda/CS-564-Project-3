@@ -144,17 +144,17 @@ void test1() {
   std::cout << "---------------------" << std::endl;
   std::cout << "createRelationForward" << std::endl;
 
-  //std::cout << "HERE 1" << std::endl;
+  std::cout << "HERE 1" << std::endl;
   createRelationForward();
-  //std::cout << "HERE 2" << std::endl;
+  std::cout << "HERE 2" << std::endl;
 
-  //std::cout << "HERE 3" << std::endl;
+  std::cout << "HERE 3" << std::endl;
   indexTests();
-  //std::cout << "HERE 4" << std::endl;
+  std::cout << "HERE 4" << std::endl;
 
-  //std::cout << "HERE 5" << std::endl;
+  std::cout << "HERE 5" << std::endl;
   deleteRelation();
-  //std::cout << "HERE 6" << std::endl;
+  std::cout << "HERE 6" << std::endl;
 }
 
 void test2() {
@@ -357,6 +357,7 @@ int intScan(BTreeIndex *index, int lowVal, Operator lowOp, int highVal,
   }
 
   std::cout << lowVal << "," << highVal;
+
   if (highOp == LT) {
     std::cout << ")";
   } else {
@@ -378,8 +379,7 @@ int intScan(BTreeIndex *index, int lowVal, Operator lowOp, int highVal,
     try {
       index->scanNext(scanRid);
       bufMgr->readPage(file1, scanRid.page_number, curPage);
-      RECORD myRec = *(
-          reinterpret_cast<const RECORD *>(curPage->getRecord(scanRid).data()));
+      RECORD myRec = *(reinterpret_cast<const RECORD *>(curPage->getRecord(scanRid).data()));
       bufMgr->unPinPage(file1, scanRid.page_number, false);
 
       if (numResults < 5) {

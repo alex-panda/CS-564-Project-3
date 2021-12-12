@@ -22,8 +22,6 @@
 // GIVEN IMPORTS END
 
 // STUDENT IMPORTS START
-#include "exceptions/page_pinned_exception.h"
-
 // STUDENT IMPORTS END
 
 //#define DEBUG
@@ -472,13 +470,13 @@ void BTreeIndex::startScan(void *lowValParm, const Operator lowOpParm,
   this->currentPageNum = this->rootPageNum;
 
   // Read root page into the buffer pool
-  this->bufMgr->readPage(this->file, this->currentPageNum,
-                         this->currentPageData);
+  this->bufMgr->readPage(this->file, this->currentPageNum, this->currentPageData);
 
   // if currNode (the root node) is not a leaf node, then we need to find the
   //      leaf node
   if (this->initialRootPageNum != this->rootPageNum) {
     NonLeafNodeInt *currNode = (NonLeafNodeInt *)this->currentPageData;
+
     bool leafFound = false;
 
     // search for leaves
@@ -496,16 +494,14 @@ void BTreeIndex::startScan(void *lowValParm, const Operator lowOpParm,
 
           this->bufMgr->unPinPage(this->file, this->currentPageNum, false);
           this->currentPageNum = currNode->pageNoArray[i + 1];
-          this->bufMgr->readPage(this->file, this->currentPageNum,
-                                 this->currentPageData);
+          this->bufMgr->readPage(this->file, this->currentPageNum, this->currentPageData);
           break;
         }
 
         if (this->lowValInt <= currNode->keyArray[i]) {
           this->bufMgr->unPinPage(this->file, this->currentPageNum, false);
           this->currentPageNum = currNode->pageNoArray[i];
-          this->bufMgr->readPage(this->file, this->currentPageNum,
-                                 this->currentPageData);
+          this->bufMgr->readPage(this->file, this->currentPageNum, this->currentPageData);
           break;
         }
       }
@@ -559,6 +555,7 @@ void BTreeIndex::startScan(void *lowValParm, const Operator lowOpParm,
       }
     }
     this->nextEntry = keyIdx + 1;
+
   } else {
     // make the current page the root if it is a leaf
     this->currentPageNum = rootPageNum;
@@ -573,37 +570,78 @@ void BTreeIndex::startScan(void *lowValParm, const Operator lowOpParm,
 // -----------------------------------------------------------------------------
 
 /**
- * Fetch the record id of the next index entry that matches the scan.
- * Return the next record from current page being scanned. If current page has
- *been scanned to its entirety, move on to the right sibling of current page, if
- *any exists, to start scanning that page. Make sure to unpin any pages that are
- *no longer required.
- * @param outRid RecordId of next record found that satisfies the scan criteria
- *returned in this
- * @throws ScanNotInitializedException If no scan has been initialized.
- * @throws IndexScanCompletedException If no more records, satisfying the scan
- *criteria, are left to be scanned.
- **/
+* Fetch the record id of the next index entry that matches the scan.
+* Return the next record from current page being scanned. If current page has
+* been scanned to its entirety, move on to the right sibling of current page,
+* if any exists, to start scanning that page. Make sure to unpin any pages
+* that are no longer required.
+* @param outRid RecordId of next record found that satisfies the scan
+* criteria returned in this
+* @throws ScanNotInitializedException If no scan has been initialized.
+* @throws IndexScanCompletedException If no more records, satisfying the scan
+* criteria, are left to be scanned.
+**/
 void BTreeIndex::scanNext(RecordId &outRid) {
-  if (!scanExecuting) throw ScanNotInitializedException();
+  if(!scanExecuting) throw ScanNotInitializedException();
 
-  LeafNodeInt *node = (LeafNodeInt *)currentPageData;
-  outRid = node->ridArray[nextEntry];
-  int val = node->keyArray[nextEntry];
+  // Look at current page as a node
+  LeafNodeInt* node = (LeafNodeInt *) currentPageData;
 
-  if ((outRid.page_number == 0 && outRid.slot_number == 0) ||
-      val > highValInt || (val = highValInt && highOp == LT)) {
-    throw IndexScanCompletedException();
-  }
+  if(node->ridArray[nextEntry].page_number == 0 || nextEntry == leafOccupancy) {
 
-  nextEntry++;
-
-  if (nextEntry >= INTARRAYLEAFSIZE ||
-      node->ridArray[nextEntry].page_number == 0) {
+    // Unpin page and read it
     bufMgr->unPinPage(file, currentPageNum, false);
+
+    // Check whether there is a next leaf node
+    if(node->rightSibPageNo == 0) {
+        // No next leaf node
+        throw IndexScanCompletedException();
+    }
+
     currentPageNum = node->rightSibPageNo;
     bufMgr->readPage(file, currentPageNum, currentPageData);
+    node = (LeafNodeInt *) currentPageData;
+
+    // Reset nextEntry
     nextEntry = 0;
+  }
+
+  // Check if rid has a good/valid key
+  int key = node->keyArray[nextEntry];
+
+  if(validKey(lowValInt, lowOp, highValInt, highOp, key)) {
+    outRid = node->ridArray[nextEntry];
+
+    // Increment nextEntry
+    nextEntry++;
+
+  } else {
+    // If the current page has been scanned to its entirety, then the scan is
+    //  complete
+    throw IndexScanCompletedException();
+  }
+}
+
+/**
+* Helper function to check that the key is good or not
+* @param lowVal   Low value of range
+* @param lowOp    Low operator (GT/GTE)
+* @param highVal  High value of range
+* @param highOp   High operator (LT/LTE)
+* @return True if the given key, under the given circumstances
+**/
+bool BTreeIndex::validKey(int lowVal, const Operator lowOp, int highVal, const Operator highOp, int key) {
+  if(lowOp == GTE && highOp == LTE) {
+    return key <= highVal && key >= lowVal;
+
+  } else if(lowOp == GT && highOp == LTE) {
+    return key <= highVal && key > lowVal;
+
+  } else if(lowOp == GTE && highOp == LT) {
+    return key < highVal && key >= lowVal;
+
+  } else {
+    return key < highVal && key > lowVal;
   }
 }
 
