@@ -17,6 +17,9 @@ ifeq ($(RHEL_VER), el6)
 endif
 export PATH
 
+make_folder := $(shell mkdir -p src/lib)
+
+
 all: $(LIB)/bufmgr.a $(OBJ)/filescan.o $(OBJ)/main.o $(OBJ)/btree.o
 	cd src;\
 	rm -rf ../relA*;\
@@ -63,3 +66,6 @@ doc:
 
 format:
 	find . \( -iname '*.h' -o -iname '*.cpp' \) -exec clang-format -style=Google -i {} \;
+
+
+

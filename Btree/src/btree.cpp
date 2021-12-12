@@ -1,4 +1,21 @@
 /**
+ * Student 1
+ * Name: Alexander Peseckis
+ * Student ID: 908-154-1840
+ * Email: peseckis@wisc.edu
+ *
+ * Student 2
+ * Name: Win San
+ * Student ID: 907-936-4031
+ * Email: wsan3@wisc.edu
+ *
+ * Student 3
+ * Name: Steven Hizmi
+ * Student ID: 907-965-9059
+ * Email: shizmi@wisc.edu
+ */
+
+/**
  * @author See Contributors.txt for code contributors and overview of BadgerDB.
  *
  * @section LICENSE
@@ -177,11 +194,11 @@ BTreeIndex::~BTreeIndex() {
 /**
  * Insert a new entry using the pair <value,rid>.
  * Start from root to recursively find out the leaf to insert the entry in. The
- *insertion may cause splitting of leaf node. This splitting will require
- *addition of new leaf page number entry into the parent non-leaf, which may
- *in-turn get split. This may continue all the way upto the root causing the
- *root to get split. If root gets split, metapage needs to be changed
- *accordingly. Make sure to unpin pages as soon as you can.
+ * insertion may cause splitting of leaf node. This splitting will require
+ * addition of new leaf page number entry into the parent non-leaf, which may
+ * in-turn get split. This may continue all the way upto the root causing the
+ * root to get split. If root gets split, metapage needs to be changed
+ * accordingly. Make sure to unpin pages as soon as you can.
  * @param key            Key to insert, pointer to integer/double/char string
  * @param rid            Record ID of a record whose entry is getting inserted
  *into the index.
@@ -582,6 +599,9 @@ void BTreeIndex::startScan(void *lowValParm, const Operator lowOpParm,
 * criteria, are left to be scanned.
 **/
 void BTreeIndex::scanNext(RecordId &outRid) {
+
+  // If startScan has not been called, then we don't know what we are scanning
+  // for so throw error
   if(!scanExecuting) throw ScanNotInitializedException();
 
   // Look at current page as a node
@@ -602,16 +622,25 @@ void BTreeIndex::scanNext(RecordId &outRid) {
     bufMgr->readPage(file, currentPageNum, currentPageData);
     node = (LeafNodeInt *) currentPageData;
 
-    // Reset nextEntry
+    // Reset nextEntry to 0
     nextEntry = 0;
   }
 
   // Check if rid has a good/valid key
   int key = node->keyArray[nextEntry];
 
-  //bool validKey = true;
+  bool validKey = true;
+  if(lowOp == GTE && highOp == LTE) {
+    validKey = key <= highValInt && key >= lowValInt;
+  } else if(lowOp == GT && highOp == LTE) {
+    validKey = key <= highValInt && key > lowValInt;
+  } else if(lowOp == GTE && highOp == LT) {
+    validKey = key < highValInt && key >= lowValInt;
+  } else {
+    validKey = key < highValInt && key > lowValInt;
+  }
 
-  if(validKey(lowValInt, lowOp, highValInt, highOp, key)) {
+  if(validKey) {
     outRid = node->ridArray[nextEntry];
 
     // Increment nextEntry
@@ -621,29 +650,6 @@ void BTreeIndex::scanNext(RecordId &outRid) {
     // If the current page has been scanned to its entirety, then the scan is
     //  complete
     throw IndexScanCompletedException();
-  }
-}
-
-/**
-* Helper function to check that the key is good or not
-* @param lowVal   Low value of range
-* @param lowOp    Low operator (GT/GTE)
-* @param highVal  High value of range
-* @param highOp   High operator (LT/LTE)
-* @return True if the given key, under the given circumstances
-**/
-bool BTreeIndex::validKey(int lowVal, const Operator lowOp, int highVal, const Operator highOp, int key) {
-  if(lowOp == GTE && highOp == LTE) {
-    return key <= highVal && key >= lowVal;
-
-  } else if(lowOp == GT && highOp == LTE) {
-    return key <= highVal && key > lowVal;
-
-  } else if(lowOp == GTE && highOp == LT) {
-    return key < highVal && key >= lowVal;
-
-  } else {
-    return key < highVal && key > lowVal;
   }
 }
 
