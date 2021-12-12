@@ -10,4 +10,4 @@ Created Tests:
  - test4
     - Tests whether the bTree can handle negative values.
  - test5
-    - Tests whether the bTree can handle an empty Tree
+    - Tests whether the bTree can handle an empty Tree.
