@@ -30,3 +30,5 @@ Created Tests:
     - Tests whether the bTree can handle negative values.
  - test5
     - Tests whether the bTree can handle an empty Tree
+- test6
+    - Tests whether the bTree can handle index out of bounds
