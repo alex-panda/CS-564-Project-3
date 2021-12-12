@@ -6,4 +6,8 @@
         tiple times during range searches
     • Please use your report to justify any additional design choices that you make.
 
-
+Created Tests:
+ - test4
+    - Tests whether the bTree can handle negative values.
+ - test5
+    - Tests whether the bTree can handle an empty Tree
