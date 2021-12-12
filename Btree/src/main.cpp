@@ -25,11 +25,11 @@
 #define checkPassFail(a, b)                                         \
   {                                                                 \
     if (a == b)                                                     \
-      std::cout << "\nTest passed at line no:" << __LINE__ << "\n"; \
+      std::cout << "\nTest passed at line no: " << __LINE__ << "\n"; \
     else {                                                          \
-      std::cout << "\nTest FAILS at line no:" << __LINE__;          \
-      std::cout << "\nExpected no of records:" << b;                \
-      std::cout << "\nActual no of records found:" << a;            \
+      std::cout << "\nTest FAILS at line no: " << __LINE__;          \
+      std::cout << "\nExpected no of records: " << b;                \
+      std::cout << "\nActual no of records found: " << a;            \
       std::cout << std::endl;                                       \
       exit(1);                                                      \
     }                                                               \
@@ -128,14 +128,27 @@ int main(int argc, char **argv) {
 
   File::remove(relationName);
 
+  std::cout << "\nTEST 1 START\n" << std::endl;
   test1();
+  std::cout << "\nTEST 1 PASSED!\n" << std::endl;
+
+  std::cout << "\nTEST 2 START\n" << std::endl;
   test2();
+  std::cout << "\nTEST 2 PASSED!\n" << std::endl;
+
+  std::cout << "\nTEST 3 START\n" << std::endl;
   test3();
+  std::cout << "\nTEST 3 PASSED!\n" << std::endl;
+
+  std::cout << "\nERROR TESTS START\n" << std::endl;
   errorTests();
+  std::cout << "\nERROR TESTS PASSED!\n" << std::endl;
 
   delete bufMgr;
 
-  return 1;
+  std::cout << "\nALL TESTS PASSED!\n\n" << std::endl;
+
+  return 0;
 }
 
 void test1() {
@@ -144,17 +157,9 @@ void test1() {
   std::cout << "---------------------" << std::endl;
   std::cout << "createRelationForward" << std::endl;
 
-  std::cout << "HERE 1" << std::endl;
   createRelationForward();
-  std::cout << "HERE 2" << std::endl;
-
-  std::cout << "HERE 3" << std::endl;
   indexTests();
-  std::cout << "HERE 4" << std::endl;
-
-  std::cout << "HERE 5" << std::endl;
   deleteRelation();
-  std::cout << "HERE 6" << std::endl;
 }
 
 void test2() {

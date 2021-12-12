@@ -554,7 +554,7 @@ void BTreeIndex::startScan(void *lowValParm, const Operator lowOpParm,
                                this->currentPageData);
       }
     }
-    this->nextEntry = keyIdx + 1;
+    this->nextEntry = keyIdx;
 
   } else {
     // make the current page the root if it is a leaf
@@ -608,6 +608,8 @@ void BTreeIndex::scanNext(RecordId &outRid) {
 
   // Check if rid has a good/valid key
   int key = node->keyArray[nextEntry];
+
+  //bool validKey = true;
 
   if(validKey(lowValInt, lowOp, highValInt, highOp, key)) {
     outRid = node->ridArray[nextEntry];
