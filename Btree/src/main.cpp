@@ -143,9 +143,18 @@ void test1() {
   // tests on attributes of all three types (int, double, string)
   std::cout << "---------------------" << std::endl;
   std::cout << "createRelationForward" << std::endl;
+
+  //std::cout << "HERE 1" << std::endl;
   createRelationForward();
+  //std::cout << "HERE 2" << std::endl;
+
+  //std::cout << "HERE 3" << std::endl;
   indexTests();
+  //std::cout << "HERE 4" << std::endl;
+
+  //std::cout << "HERE 5" << std::endl;
   deleteRelation();
+  //std::cout << "HERE 6" << std::endl;
 }
 
 void test2() {
@@ -180,8 +189,6 @@ void createRelationForward() {
   } catch (const FileNotFoundException &e) {
   }
 
-  std::cout << "HERE!!!!!!!!!" << std::endl;
-
   file1 = new PageFile(relationName, true);
 
   // initialize all of record1.s to keep purify happy
@@ -204,6 +211,7 @@ void createRelationForward() {
         file1->writePage(new_page_number, new_page);
         new_page = file1->allocatePage(new_page_number);
       }
+
     }
   }
 
@@ -326,17 +334,18 @@ void intTests() {
                    INTEGER);
 
   // run some tests
-  checkPassFail(intScan(&index, 25, GT, 40, LT), 14)
-      checkPassFail(intScan(&index, 20, GTE, 35, LTE), 16)
-          checkPassFail(intScan(&index, -3, GT, 3, LT), 3)
-              checkPassFail(intScan(&index, 996, GT, 1001, LT), 4)
-                  checkPassFail(intScan(&index, 0, GT, 1, LT), 0) checkPassFail(
-                      intScan(&index, 300, GT, 400, LT), 99)
-                      checkPassFail(intScan(&index, 3000, GTE, 4000, LT), 1000)
+  checkPassFail(intScan(&index, 25,   GT,  40,   LT),  14)
+  checkPassFail(intScan(&index, 20,   GTE, 35,   LTE), 16)
+  checkPassFail(intScan(&index, -3,   GT,  3,    LT),  3)
+  checkPassFail(intScan(&index, 996,  GT,  1001, LT),  4)
+  checkPassFail(intScan(&index, 0,    GT,  1,    LT),  0)
+  checkPassFail(intScan(&index, 300,  GT,  400,  LT),  99)
+  checkPassFail(intScan(&index, 3000, GTE, 4000, LT),  1000)
 }
 
 int intScan(BTreeIndex *index, int lowVal, Operator lowOp, int highVal,
             Operator highOp) {
+
   RecordId scanRid;
   Page *curPage;
 
@@ -346,12 +355,14 @@ int intScan(BTreeIndex *index, int lowVal, Operator lowOp, int highVal,
   } else {
     std::cout << "[";
   }
+
   std::cout << lowVal << "," << highVal;
   if (highOp == LT) {
     std::cout << ")";
   } else {
     std::cout << "]";
   }
+
   std::cout << std::endl;
 
   int numResults = 0;
@@ -388,7 +399,9 @@ int intScan(BTreeIndex *index, int lowVal, Operator lowOp, int highVal,
   if (numResults >= 5) {
     std::cout << "Number of results: " << numResults << std::endl;
   }
+
   index->endScan();
+
   std::cout << std::endl;
 
   return numResults;

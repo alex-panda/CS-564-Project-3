@@ -125,7 +125,7 @@ BTreeIndex::BTreeIndex(const std::string &relationName,
     bufMgr->unPinPage(this->file, this->rootPageNum, true);
 
     // insert entries for every tuple in the base relation using FileScan
-    FileScan fileScan(outIndexName, this->bufMgr);
+    FileScan fileScan(relationName, this->bufMgr);
     RecordId rid;
 
     try {
@@ -133,10 +133,11 @@ BTreeIndex::BTreeIndex(const std::string &relationName,
       while (true) {
         fileScan.scanNext(rid);
         std::string record = fileScan.getRecord();
-        insertEntry((int *)(record.c_str() + this->attrByteOffset), rid);
+        this->insertEntry((int *)(record.c_str() + this->attrByteOffset), rid);
       }
     } catch (EndOfFileException &e) {
       // Save the Index to the file
+
       this->bufMgr->flushFile(this->file);
     }
   }
@@ -465,6 +466,8 @@ void BTreeIndex::startScan(void *lowValParm, const Operator lowOpParm,
   if (this->scanExecuting) {
     this->endScan();
   }
+
+  this->scanExecuting = true;
 
   this->currentPageNum = this->rootPageNum;
 
