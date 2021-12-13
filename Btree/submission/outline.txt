@@ -1,0 +1,2 @@
+design_report.pdf is located within this folder
+our test cases are tests 4-6 in main.cpp
