@@ -515,101 +515,114 @@ void BTreeIndex::startScan(void *lowValParm, const Operator lowOpParm,
   this->bufMgr->readPage(this->file, this->currentPageNum,
                          this->currentPageData);
 
-  // if currNode (the root node) is not a leaf node, then we need to find the
-  //      leaf node
+  // the initialRootPageNum is not the root
   if (this->initialRootPageNum != this->rootPageNum) {
     NonLeafNodeInt *currNode =
         reinterpret_cast<NonLeafNodeInt *>(this->currentPageData);
 
     bool leafFound = false;
 
-    // search for leaves
     while (!leafFound) {
       currNode = reinterpret_cast<NonLeafNodeInt *>(this->currentPageData);
 
-      // if correct leaf has been found, end while loop
+      // if this is the level above the leaf, end while loop
       if (currNode->level == 1) {
         leafFound = true;
       }
 
-      for (int i = 0; i < this->nodeOccupancy; i++) {
-        if (currNode->keyArray[i] == 0 &&
-            this->lowValInt > currNode->keyArray[i]) {
-          this->bufMgr->unPinPage(this->file, this->currentPageNum, false);
-          this->currentPageNum = currNode->pageNoArray[i + 1];
-          this->bufMgr->readPage(this->file, this->currentPageNum,
-                                 this->currentPageData);
-          break;
+      PageId nextNode;
+
+      // find the next node that is not a leaf
+      {
+        int i = this->nodeOccupancy;
+        while (i >= 0 && (currNode->pageNoArray[i] == 0)) {
+          i--;
         }
 
-        if (this->lowValInt <= currNode->keyArray[i]) {
-          this->bufMgr->unPinPage(this->file, this->currentPageNum, false);
-          this->currentPageNum = currNode->pageNoArray[i];
-          this->bufMgr->readPage(this->file, this->currentPageNum,
-                                 this->currentPageData);
-          break;
+        while (i > 0 && (currNode->keyArray[i - 1] >= lowValInt)) {
+          i--;
         }
+
+        nextNode = currNode->pageNoArray[i];
       }
-    }
 
-    // We found the leaf node
-    LeafNodeInt *leafPage =
+      // Unpin the current page
+      this->bufMgr->unPinPage(this->file, this->currentPageNum, false);
+      this->currentPageNum = nextNode;  // current page is not a leaf
+
+      // read the page in
+      this->bufMgr->readPage(this->file, this->currentPageNum,
+                             this->currentPageData);
+    }
+  }
+
+  // Now that the current Node is the leaf node, try to find the smallest
+  //   record that satisfies the operands
+
+  bool looking = true;
+
+  while (looking) {
+    LeafNodeInt *currLeaf =
         reinterpret_cast<LeafNodeInt *>(this->currentPageData);
 
-    bool looking = true;
-    int keyIdx;
+    // If the page is null, then the key kould not be found
+    if (currLeaf->ridArray[0].page_number == 0) {
+      this->bufMgr->unPinPage(this->file, this->currentPageNum,
+                              false);  // make sure page is unpinned
+      throw NoSuchKeyFoundException();
+    }
 
-    while (looking) {
-      leafPage = reinterpret_cast<LeafNodeInt *>(this->currentPageData);
-      for (keyIdx = 0; keyIdx < this->leafOccupancy; keyIdx++) {
-        if (lowOpParm == GT) {
-          if (lowValInt >= leafPage->keyArray[keyIdx]) {
-            continue;
-          }
-        } else {
-          if (lowValInt > leafPage->keyArray[keyIdx]) {
-            continue;
-          }
-        }
+    bool noVal = false;
 
-        if (highOpParm == LT) {
-          // not in criteria if key <= highValInt
-          if (highValInt <= leafPage->keyArray[keyIdx]) {
-            throw NoSuchKeyFoundException();
-          }
-        } else {
-          // not in criteria, if key < highValInt
-          if (highValInt < leafPage->keyArray[keyIdx]) {
-            throw NoSuchKeyFoundException();
-          }
-        }
+    // Search from left leaf page to right leaf page for the first value
+    for (int i = 0; i < leafOccupancy and !noVal; i++) {
+      int key = currLeaf->keyArray[i];
 
-        looking = false;
-        break;
+      // Check if the next one in the key is not inserted
+      if (i < this->leafOccupancy - 1 &&
+          currLeaf->ridArray[i + 1].page_number == 0) {
+        noVal = true;
       }
 
-      // If we have reached this point without finding the specified key,
-      //      then throw exception
-      if (leafPage->rightSibPageNo == 0 && looking) {
+      // check that the current key is valid
+      bool validKey;
+      if (lowOp == GTE && highOp == LTE) {
+        validKey = (key <= this->highValInt && key >= this->lowValInt);
+      } else if (lowOp == GT && highOp == LTE) {
+        validKey = (key <= this->highValInt && key > this->lowValInt);
+      } else if (lowOp == GTE && highOp == LT) {
+        validKey = (key < this->highValInt && key >= this->lowValInt);
+      } else {
+        validKey = (key < this->highValInt && key > this->lowValInt);
+      }
+
+      if (validKey) {
+        // use this valid key
+        this->nextEntry = i;
+        this->scanExecuting = true;
+        looking = false;
+        break;
+      } else if ((this->highOp == LT && key >= this->highValInt) ||
+                 (this->highOp == LTE && key > this->highValInt)) {
+        // Key is invalid and the situation is unsalvagable
+        this->bufMgr->unPinPage(this->file, this->currentPageNum, false);
         throw NoSuchKeyFoundException();
       }
 
-      // look at leaf node to the right of this one
-      if (looking) {
+      if (i == this->leafOccupancy - 1 || noVal) {
+        // No matching key was found in this leaf so go to the next one
         this->bufMgr->unPinPage(this->file, this->currentPageNum, false);
-        this->currentPageNum = leafPage->rightSibPageNo;
+
+        // no next leaf so no such page was found
+        if (currLeaf->rightSibPageNo == 0) {
+          throw NoSuchKeyFoundException();
+        }
+
+        this->currentPageNum = currLeaf->rightSibPageNo;
         this->bufMgr->readPage(this->file, this->currentPageNum,
                                this->currentPageData);
       }
     }
-    this->nextEntry = keyIdx;
-
-  } else {
-    // make the current page the root if it is a leaf
-    this->currentPageNum = rootPageNum;
-    this->bufMgr->readPage(this->file, this->currentPageNum,
-                           this->currentPageData);
-    this->nextEntry = 0;  // reset next entry because we have reached a new page
   }
 }
 

@@ -581,16 +581,19 @@ void intOutOfBoundsTest() {
   BTreeIndex index(relationName, intIndexName, bufMgr, offsetof(tuple, i),
                    INTEGER);
 
-  checkPassFail(intScan(&index, 3000, GTE, 6000, LT), 2000);
-  checkPassFail(intScan(&index, 4999, GTE, 5010, LT), 1);
+  checkPassFail(intScan(&index, 4000, GTE, 6000, LT), 1000);
+  checkPassFail(intScan(&index, 4999, GTE, 5000, LT), 1);
+
+  checkPassFail(intScan(&index, -20000, GTE, 7099, LT), 5000);
+  checkPassFail(intScan(&index, 4800, GTE, 5050, LTE), 200);
 
   checkPassFail(intScan(&index, 5500, GTE, 6000, LT), 0);
   checkPassFail(intScan(&index, 4999, GT, 6000, LT), 0);
-  checkPassFail(intScan(&index, -3000, GT, 0, LT), 0);
+  checkPassFail(intScan(&index, -2000, GT, 0, LT), 0);
 
-  checkPassFail(intScan(&index, -3000, GT, 0, LTE), 1);
-  checkPassFail(intScan(&index, -3000, GT, 5, LTE), 6);
-  checkPassFail(intScan(&index, -3000, GT, 200, LT), 200);
+  checkPassFail(intScan(&index, -2000, GT, 0, LTE), 1);
+  checkPassFail(intScan(&index, -2000, GT, 5, LTE), 6);
+  checkPassFail(intScan(&index, -2000, GT, 200, LT), 200);
 }
 
 void deleteIndexFile() {
